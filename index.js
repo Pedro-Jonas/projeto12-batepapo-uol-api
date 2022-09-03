@@ -68,8 +68,12 @@ server.post("/participants", async (req, res) =>{
 });
 
 server.get("/participants", async (req, res) =>{
-    const response = await db.collection("participantes").find().toArray();
-    res.status(200).send(response);
+    try{
+        const response = await db.collection("participantes").find().toArray();
+        res.status(200).send(response);
+    } catch {
+        res.sendStatus(422);
+    };
 });
 
 server.post("/messages", async (req, res) => {
@@ -106,6 +110,27 @@ server.post("/messages", async (req, res) => {
             time: dayjs().format("hh:mm:ss")
         });
         res.status(201).send("Ok");
+    } catch {
+        res.sendStatus(422);
+    };
+});
+
+server.get("/messages", async (req, res) => {
+    const limit = req.query.limit;
+    const user = req.headers.user;
+    let messages = [];
+    try{
+        const totalmessages = await db.collection("mensagens").find().toArray();
+
+        messages = (totalmessages.filter((element)=> {
+            return element.type === "message" || 
+            element.type === "status" ||
+            (element.type === "private_message" && element.from === user);
+        }))
+        if (limit && messages.length > limit){
+            messages = messages.slice(-limit);
+        };
+        res.status(200).send(messages);
     } catch {
         res.sendStatus(422);
     };
