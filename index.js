@@ -136,7 +136,23 @@ server.get("/messages", async (req, res) => {
     };
 });
 
-
+server.post("/status", async (req, res) => {
+    const user = req.headers.user;
+    try{
+        const participants = await db.collection("participantes").find().toArray();
+        const verif = await participants.find(element => {
+            return element.name === user;
+        });
+        if (verif === undefined){
+            res.status(404).send("Usuário não encontrado");
+            return;
+        };
+        const update = await db.collection("participantes").updateOne({ _id: verif._id }, { $set: {lastStatus: Date.now()} })
+        res.status(200).send("Ok");
+    } catch {
+        res.sendStatus(422);
+    };
+});
 
 server.listen(5000); 
 
