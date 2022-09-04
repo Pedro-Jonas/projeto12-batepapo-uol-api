@@ -147,12 +147,21 @@ server.post("/status", async (req, res) => {
             res.status(404).send("Usuário não encontrado");
             return;
         };
-        const update = await db.collection("participantes").updateOne({ _id: verif._id }, { $set: {lastStatus: Date.now()} })
+        await db.collection("participantes").updateOne({ _id: verif._id }, { $set: {lastStatus: Date.now()} });
         res.status(200).send("Ok");
     } catch {
         res.sendStatus(422);
     };
 });
+
+setInterval(async () => {
+    const participants = await db.collection("participantes").find().toArray();
+    participants.forEach(element => {
+        if ((Date.now() - element.lastStatus) > 10000) {
+            db.collection("participantes").deleteOne({_id: element._id})
+        }
+    });
+}, 15000);
 
 server.listen(5000); 
 
