@@ -105,8 +105,8 @@ server.post("/messages", async (req, res) => {
 
     try{
         const env = await db.collection("mensagens").insertOne({
-            ...message,
             from,
+            ...message,
             time: dayjs().format("hh:mm:ss")
         });
         res.status(201).send("Ok");
@@ -125,6 +125,7 @@ server.get("/messages", async (req, res) => {
         messages = (totalmessages.filter((element)=> {
             return element.type === "message" || 
             element.type === "status" ||
+            (element.type === "private_message" && element.to === user)||
             (element.type === "private_message" && element.from === user);
         }))
         if (limit && messages.length > limit){
